@@ -1,47 +1,44 @@
 
 import { useState } from "react";
 import { Filter } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
+import type { Product } from "@/types/database";
 
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const products = [
-    {
-      id: 1,
-      name: "Natural Face Cream",
-      price: 29.99,
-      image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=60",
-      category: "skincare",
-      discount: 20,
-      description: "A gentle, natural face cream that nourishes and hydrates your skin.",
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*");
+      
+      if (error) throw error;
+      return data as Product[];
     },
-    {
-      id: 2,
-      name: "Organic Lipstick",
-      price: 19.99,
-      image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&auto=format&fit=crop&q=60",
-      category: "makeup",
-      description: "Long-lasting organic lipstick with natural ingredients.",
-    },
-    {
-      id: 3,
-      name: "Vitamin C Serum",
-      price: 39.99,
-      image: "https://images.unsplash.com/photo-1570194065650-d707c8ca0095?w=800&auto=format&fit=crop&q=60",
-      category: "skincare",
-      discount: 15,
-      description: "High-potency Vitamin C serum for brighter, more radiant skin.",
-    },
-  ];
+  });
 
-  const categories = ["all", "skincare", "makeup", "haircare", "fragrances"];
+  const categories = ["all", ...new Set(products.map(product => product.category))];
 
   const filteredProducts = selectedCategory === "all" 
     ? products 
     : products.filter(product => product.category === selectedCategory);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container py-20">
+          <div className="text-center">Loading products...</div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,7 +67,14 @@ const Products = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
+            <ProductCard
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              price={product.price}
+              image={product.image_url}
+              discount={product.discount}
+            />
           ))}
         </div>
       </main>

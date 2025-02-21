@@ -1,29 +1,55 @@
 
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import type { Product } from "@/types/database";
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
 
-  // Mock product data - in a real app, this would come from an API
-  const product = {
-    id: 1,
-    name: "Natural Face Cream",
-    price: 29.99,
-    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=60",
-    description: "A gentle, natural face cream that nourishes and hydrates your skin.",
-    details: [
-      "100% Natural Ingredients",
-      "Suitable for all skin types",
-      "Paraben-free",
-      "Cruelty-free",
-    ],
-    discount: 20,
+  const { data: product, isLoading } = useQuery({
+    queryKey: ["product", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .single();
+      
+      if (error) throw error;
+      return data as Product;
+    },
+  });
+
+  const addToCart = async () => {
+    if (!user) {
+      toast.error("Please sign in to add items to cart");
+      navigate("/auth");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("cart_items").upsert({
+        user_id: user.id,
+        product_id: id,
+        quantity,
+      });
+
+      if (error) throw error;
+      toast.success(`Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart`);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add item to cart");
+    }
   };
 
   const decreaseQuantity = () => {
@@ -36,13 +62,34 @@ const ProductDetails = () => {
     setQuantity(quantity + 1);
   };
 
-  const addToCart = () => {
-    toast.success(`Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart`);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container py-20">
+          <div className="text-center">Loading product details...</div>
+        </main>
+      </div>
+    );
+  }
 
   if (!product) {
-    return <div>Product not found</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container py-20">
+          <div className="text-center">Product not found</div>
+        </main>
+      </div>
+    );
   }
+
+  const details = [
+    "100% Natural Ingredients",
+    "Suitable for all skin types",
+    "Paraben-free",
+    "Cruelty-free",
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,7 +98,7 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="relative aspect-square overflow-hidden rounded-lg">
             <img
-              src={product.image}
+              src={product.image_url}
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -80,7 +127,7 @@ const ProductDetails = () => {
             <div className="space-y-2">
               <h3 className="font-semibold">Key Features:</h3>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                {product.details.map((detail, index) => (
+                {details.map((detail, index) => (
                   <li key={index}>{detail}</li>
                 ))}
               </ul>
