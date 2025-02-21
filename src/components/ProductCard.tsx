@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { toast } from "sonner";
 
 interface ProductCardProps {
-  id: number;
+  id: string;  // Changed from number to string
   name: string;
   price: number;
   image: string;
