@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,21 +8,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { Product, CartItem } from "@/types/database";
+import type { Product, CartItem, GuestCartItem } from "@/types/database";
 
 const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [guestCart, setGuestCart] = useState<GuestCartItem[]>([]);
 
-  // Redirect if not authenticated
+  // Load guest cart from localStorage
   useEffect(() => {
     if (!user) {
-      navigate("/auth");
+      const storedCart = localStorage.getItem("guestCart");
+      if (storedCart) {
+        setGuestCart(JSON.parse(storedCart));
+      }
     }
-  }, [user, navigate]);
+  }, [user]);
 
-  // Fetch cart items with product details
+  // Fetch cart items with product details for authenticated users
   const { data: cartItems = [], isLoading } = useQuery({
     queryKey: ["cart"],
     queryFn: async () => {
@@ -42,7 +46,7 @@ const Cart = () => {
     enabled: !!user,
   });
 
-  // Setup real-time updates for cart
+  // Setup real-time updates for authenticated cart
   useEffect(() => {
     if (!user) return;
 
@@ -67,10 +71,10 @@ const Cart = () => {
     };
   }, [user, queryClient]);
 
-  const updateQuantity = async (cartItemId: string, newQuantity: number) => {
+  const updateAuthenticatedQuantity = async (cartItemId: string, newQuantity: number) => {
     try {
       if (newQuantity < 1) {
-        await removeFromCart(cartItemId);
+        await removeFromAuthenticatedCart(cartItemId);
         return;
       }
 
@@ -86,7 +90,23 @@ const Cart = () => {
     }
   };
 
-  const removeFromCart = async (cartItemId: string) => {
+  const updateGuestQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) {
+      removeFromGuestCart(productId);
+      return;
+    }
+
+    const updatedCart = guestCart.map(item => 
+      item.product_id === productId 
+        ? { ...item, quantity: newQuantity }
+        : item
+    );
+
+    setGuestCart(updatedCart);
+    localStorage.setItem("guestCart", JSON.stringify(updatedCart));
+  };
+
+  const removeFromAuthenticatedCart = async (cartItemId: string) => {
     try {
       const { error } = await supabase
         .from("cart_items")
@@ -101,7 +121,14 @@ const Cart = () => {
     }
   };
 
-  const checkout = async () => {
+  const removeFromGuestCart = (productId: string) => {
+    const updatedCart = guestCart.filter(item => item.product_id !== productId);
+    setGuestCart(updatedCart);
+    localStorage.setItem("guestCart", JSON.stringify(updatedCart));
+    toast.success("Item removed from cart");
+  };
+
+  const authenticatedCheckout = async () => {
     if (!user || cartItems.length === 0) return;
 
     try {
@@ -153,7 +180,12 @@ const Cart = () => {
     }
   };
 
-  if (isLoading) {
+  const guestCheckout = async () => {
+    navigate("/auth");
+    toast.info("Please sign in or sign up to complete your purchase");
+  };
+
+  if (user && isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -164,7 +196,8 @@ const Cart = () => {
     );
   }
 
-  const subtotal = cartItems.reduce(
+  const items = user ? cartItems : guestCart;
+  const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
@@ -175,7 +208,7 @@ const Cart = () => {
       <main className="container py-20">
         <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
 
-        {cartItems.length === 0 ? (
+        {items.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500 mb-4">Your cart is empty</p>
             <Button onClick={() => navigate("/products")}>Continue Shopping</Button>
@@ -183,9 +216,9 @@ const Cart = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item) => (
+              {items.map((item) => (
                 <div
-                  key={item.id}
+                  key={user ? item.id : item.product_id}
                   className="flex gap-4 p-4 border rounded-lg bg-card"
                 >
                   <img
@@ -202,7 +235,13 @@ const Cart = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => {
+                          if (user) {
+                            updateAuthenticatedQuantity(item.id, item.quantity - 1);
+                          } else {
+                            updateGuestQuantity(item.product_id, item.quantity - 1);
+                          }
+                        }}
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
@@ -210,7 +249,13 @@ const Cart = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => {
+                          if (user) {
+                            updateAuthenticatedQuantity(item.id, item.quantity + 1);
+                          } else {
+                            updateGuestQuantity(item.product_id, item.quantity + 1);
+                          }
+                        }}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -218,7 +263,13 @@ const Cart = () => {
                         variant="ghost"
                         size="icon"
                         className="ml-auto text-destructive"
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => {
+                          if (user) {
+                            removeFromAuthenticatedCart(item.id);
+                          } else {
+                            removeFromGuestCart(item.product_id);
+                          }
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -243,9 +294,9 @@ const Cart = () => {
               <Button
                 className="w-full"
                 size="lg"
-                onClick={checkout}
+                onClick={user ? authenticatedCheckout : guestCheckout}
               >
-                Checkout
+                {user ? "Checkout" : "Sign in to Checkout"}
               </Button>
             </div>
           </div>
