@@ -7,20 +7,20 @@ import ProductCard from "@/components/ProductCard";
 const Index = () => {
   const featuredProducts = [
     {
-      id: 1,
+      id: "1",  // Changed to string to match our schema
       name: "Natural Face Cream",
       price: 29.99,
       image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=60",
       discount: 20,
     },
     {
-      id: 2,
+      id: "2",  // Changed to string to match our schema
       name: "Organic Lipstick",
       price: 19.99,
       image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&auto=format&fit=crop&q=60",
     },
     {
-      id: 3,
+      id: "3",  // Changed to string to match our schema
       name: "Vitamin C Serum",
       price: 39.99,
       image: "https://images.unsplash.com/photo-1570194065650-d707c8ca0095?w=800&auto=format&fit=crop&q=60",

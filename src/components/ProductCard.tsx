@@ -1,11 +1,12 @@
 
 import { Heart } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProductCardProps {
-  id: string;  // Changed from number to string
+  id: string;
   name: string;
   price: number;
   image: string;
@@ -13,8 +14,26 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ id, name, price, image, discount }: ProductCardProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const addToCart = () => {
+    if (!user) {
+      toast.error("Please sign in to add items to cart");
+      navigate("/auth");
+      return;
+    }
     toast.success("Added to cart!");
+  };
+
+  const addToWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Please sign in to add items to wishlist");
+      navigate("/auth");
+      return;
+    }
+    toast.success("Added to wishlist!");
   };
 
   return (
@@ -35,10 +54,7 @@ const ProductCard = ({ id, name, price, image, discount }: ProductCardProps) => 
             variant="ghost"
             size="icon"
             className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-            onClick={(e) => {
-              e.preventDefault();
-              toast.success("Added to wishlist!");
-            }}
+            onClick={addToWishlist}
           >
             <Heart className="h-5 w-5" />
           </Button>
