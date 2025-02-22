@@ -18,12 +18,33 @@ const ProductCard = ({ id, name, price, image, discount }: ProductCardProps) => 
   const { user } = useAuth();
 
   const addToCart = () => {
-    if (!user) {
-      toast.error("Please sign in to add items to cart");
-      navigate("/auth");
-      return;
+    if (user) {
+      // User is logged in, use existing cart functionality
+      toast.success("Added to cart!");
+    } else {
+      // Guest user - store in local storage
+      const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
+      const existingItem = guestCart.find((item: any) => item.product_id === id);
+
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        guestCart.push({
+          product_id: id,
+          quantity: 1,
+          product: {
+            id,
+            name,
+            price,
+            image_url: image,
+            discount,
+          },
+        });
+      }
+
+      localStorage.setItem("guestCart", JSON.stringify(guestCart));
+      toast.success("Added to cart!");
     }
-    toast.success("Added to cart!");
   };
 
   const addToWishlist = (e: React.MouseEvent) => {

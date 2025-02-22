@@ -19,3 +19,15 @@ export interface CartItem {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface GuestCartItem {
+  product_id: string;
+  quantity: number;
+  product: Product;
+}
+
+export interface GuestOrder {
+  email: string;
+  full_name: string;
+  items: GuestCartItem[];
+}
