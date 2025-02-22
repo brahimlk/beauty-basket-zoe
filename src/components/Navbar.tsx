@@ -21,11 +21,22 @@ const Navbar = () => {
     }
   };
 
+  const navigateHome = () => {
+    navigate("/");
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-semibold text-primary">
+          <Link 
+            to="/" 
+            className="text-xl font-semibold text-primary hover:opacity-80 transition-opacity cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateHome();
+            }}
+          >
             BeautyBasket
           </Link>
 
@@ -72,7 +83,10 @@ const Navbar = () => {
               <Link
                 to="/"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  navigateHome();
+                }}
               >
                 Home
               </Link>
