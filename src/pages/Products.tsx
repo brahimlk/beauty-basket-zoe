@@ -16,7 +16,7 @@ const Products = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*");
+        .select();
       
       if (error) throw error;
       return data as Product[];
@@ -67,14 +67,7 @@ const Products = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              price={product.price}
-              image={product.image_url}
-              discount={product.discount}
-            />
+            <ProductCard key={product.id} {...product} />
           ))}
         </div>
       </main>

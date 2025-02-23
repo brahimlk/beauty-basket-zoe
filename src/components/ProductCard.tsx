@@ -4,16 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import type { Product } from "@/types/database";
 
-interface ProductCardProps {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  discount?: number;
-}
+interface ProductCardProps extends Product {}
 
-const ProductCard = ({ id, name, price, image, discount }: ProductCardProps) => {
+const ProductCard = ({ id, name, price, image_url, discount, description, category }: ProductCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -36,8 +31,10 @@ const ProductCard = ({ id, name, price, image, discount }: ProductCardProps) => 
             id,
             name,
             price,
-            image_url: image,
+            image_url,
             discount,
+            description,
+            category
           },
         });
       }
@@ -62,7 +59,7 @@ const ProductCard = ({ id, name, price, image, discount }: ProductCardProps) => 
       <Link to={`/products/${id}`} className="block">
         <div className="relative overflow-hidden rounded-lg">
           <img
-            src={image}
+            src={image_url}
             alt={name}
             className="w-full h-64 object-cover transition-transform duration-300"
           />
