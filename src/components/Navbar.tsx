@@ -5,10 +5,12 @@ import { ShoppingCart, Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/useCart";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { items } = useCart();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -50,20 +52,18 @@ const Navbar = () => {
             <Link to="/categories" className="nav-link">
               Categories
             </Link>
+            <Link to="/cart" className="relative">
+              <Button variant="ghost" size="icon">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 text-xs bg-primary text-white rounded-full flex items-center justify-center">
+                  {items.length}
+                </span>
+              </Button>
+            </Link>
             {user ? (
-              <>
-                <Link to="/cart" className="relative">
-                  <Button variant="ghost" size="icon">
-                    <ShoppingCart className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 h-4 w-4 text-xs bg-primary text-white rounded-full flex items-center justify-center">
-                      0
-                    </span>
-                  </Button>
-                </Link>
-                <Button variant="ghost" onClick={handleSignOut}>
-                  Sign Out
-                </Button>
-              </>
+              <Button variant="ghost" onClick={handleSignOut}>
+                Sign Out
+              </Button>
             ) : (
               <Button onClick={() => navigate("/auth")}>Sign In</Button>
             )}
@@ -104,25 +104,23 @@ const Navbar = () => {
               >
                 Categories
               </Link>
+              <Link
+                to="/cart"
+                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary"
+                onClick={() => setIsOpen(false)}
+              >
+                Cart ({items.length})
+              </Link>
               {user ? (
-                <>
-                  <Link
-                    to="/cart"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Cart
-                  </Link>
-                  <button
-                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-primary"
-                    onClick={() => {
-                      handleSignOut();
-                      setIsOpen(false);
-                    }}
-                  >
-                    Sign Out
-                  </button>
-                </>
+                <button
+                  className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-primary"
+                  onClick={() => {
+                    handleSignOut();
+                    setIsOpen(false);
+                  }}
+                >
+                  Sign Out
+                </button>
               ) : (
                 <Link
                   to="/auth"
