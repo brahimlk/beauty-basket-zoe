@@ -16,7 +16,14 @@ export const useCart = () => {
     if (!user) {
       const storedCart = localStorage.getItem("guestCart");
       if (storedCart) {
-        setGuestCart(JSON.parse(storedCart));
+        try {
+          const parsedCart = JSON.parse(storedCart);
+          setGuestCart(Array.isArray(parsedCart) ? parsedCart : []);
+        } catch (error) {
+          console.error("Error parsing guest cart:", error);
+          localStorage.removeItem("guestCart");
+          setGuestCart([]);
+        }
       }
     }
   }, [user]);
@@ -128,7 +135,7 @@ export const useCart = () => {
 
   return {
     items,
-    isLoading: user && isLoading,
+    isLoading: false, // Changed this to false for guest users
     subtotal,
     updateQuantity: user ? updateAuthenticatedQuantity : updateGuestQuantity,
     removeItem: user ? removeFromAuthenticatedCart : removeFromGuestCart,
