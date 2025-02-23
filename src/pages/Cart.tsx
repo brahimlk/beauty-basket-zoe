@@ -218,7 +218,7 @@ const Cart = () => {
             <div className="lg:col-span-2 space-y-4">
               {items.map((item) => (
                 <div
-                  key={user ? item.id : item.product_id}
+                  key={user ? (item as CartItem & { product: Product }).id : item.product_id}
                   className="flex gap-4 p-4 border rounded-lg bg-card"
                 >
                   <img
@@ -237,9 +237,15 @@ const Cart = () => {
                         size="icon"
                         onClick={() => {
                           if (user) {
-                            updateAuthenticatedQuantity(item.id, item.quantity - 1);
+                            updateAuthenticatedQuantity(
+                              (item as CartItem & { product: Product }).id, 
+                              item.quantity - 1
+                            );
                           } else {
-                            updateGuestQuantity(item.product_id, item.quantity - 1);
+                            updateGuestQuantity(
+                              item.product_id,
+                              item.quantity - 1
+                            );
                           }
                         }}
                       >
@@ -251,9 +257,15 @@ const Cart = () => {
                         size="icon"
                         onClick={() => {
                           if (user) {
-                            updateAuthenticatedQuantity(item.id, item.quantity + 1);
+                            updateAuthenticatedQuantity(
+                              (item as CartItem & { product: Product }).id,
+                              item.quantity + 1
+                            );
                           } else {
-                            updateGuestQuantity(item.product_id, item.quantity + 1);
+                            updateGuestQuantity(
+                              item.product_id,
+                              item.quantity + 1
+                            );
                           }
                         }}
                       >
@@ -265,7 +277,9 @@ const Cart = () => {
                         className="ml-auto text-destructive"
                         onClick={() => {
                           if (user) {
-                            removeFromAuthenticatedCart(item.id);
+                            removeFromAuthenticatedCart(
+                              (item as CartItem & { product: Product }).id
+                            );
                           } else {
                             removeFromGuestCart(item.product_id);
                           }
