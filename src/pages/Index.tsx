@@ -7,24 +7,30 @@ import ProductCard from "@/components/ProductCard";
 const Index = () => {
   const featuredProducts = [
     {
-      id: "1",  // Changed to string to match our schema
+      id: "1",
       name: "Natural Face Cream",
       price: 29.99,
-      image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=60",
+      image_url: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=60",
       discount: 20,
+      description: "A gentle, natural face cream suitable for all skin types.",
+      category: "skincare"
     },
     {
-      id: "2",  // Changed to string to match our schema
+      id: "2",
       name: "Organic Lipstick",
       price: 19.99,
-      image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&auto=format&fit=crop&q=60",
+      image_url: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&auto=format&fit=crop&q=60",
+      description: "Long-lasting organic lipstick with natural ingredients.",
+      category: "makeup"
     },
     {
-      id: "3",  // Changed to string to match our schema
+      id: "3",
       name: "Vitamin C Serum",
       price: 39.99,
-      image: "https://images.unsplash.com/photo-1570194065650-d707c8ca0095?w=800&auto=format&fit=crop&q=60",
+      image_url: "https://images.unsplash.com/photo-1570194065650-d707c8ca0095?w=800&auto=format&fit=crop&q=60",
       discount: 15,
+      description: "Powerful vitamin C serum for brighter, healthier skin.",
+      category: "skincare"
     },
   ];
 
