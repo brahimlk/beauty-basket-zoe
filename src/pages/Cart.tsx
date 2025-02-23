@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CartItem } from "@/components/CartItem";
 import { OrderSummary } from "@/components/OrderSummary";
 import { useCart } from "@/hooks/useCart";
+import type { CartItem as CartItemType, Product } from "@/types/database";
 
 const Cart = () => {
   const { user } = useAuth();
@@ -100,15 +101,20 @@ const Cart = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
-              {items.map((item) => (
-                <CartItem
-                  key={isAuthenticated ? item.id : item.product_id}
-                  item={item}
-                  isAuthenticated={isAuthenticated}
-                  onUpdateQuantity={updateQuantity}
-                  onRemove={removeItem}
-                />
-              ))}
+              {items.map((item) => {
+                const itemKey = isAuthenticated
+                  ? (item as CartItemType & { product: Product }).id
+                  : item.product_id;
+                return (
+                  <CartItem
+                    key={itemKey}
+                    item={item}
+                    isAuthenticated={isAuthenticated}
+                    onUpdateQuantity={updateQuantity}
+                    onRemove={removeItem}
+                  />
+                );
+              })}
             </div>
             <OrderSummary
               subtotal={subtotal}
