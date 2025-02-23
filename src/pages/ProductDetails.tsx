@@ -21,16 +21,19 @@ const ProductDetails = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select()
         .eq("id", id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) return null;
       return data as Product;
     },
   });
 
   const addToCart = async () => {
+    if (!product) return;
+    
     if (user) {
       try {
         const { error } = await supabase.from("cart_items").upsert({
@@ -57,11 +60,13 @@ const ProductDetails = () => {
           product_id: id,
           quantity,
           product: {
-            id: product?.id,
-            name: product?.name,
-            price: product?.price,
-            image_url: product?.image_url,
-            discount: product?.discount,
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image_url: product.image_url,
+            discount: product.discount,
+            description: product.description,
+            category: product.category,
           },
         });
       }
